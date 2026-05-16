@@ -1,9 +1,8 @@
 export async function sendMessage(messages, model = "qwen2.5:7b", extraBody = {}) {
-  // In production, call the serverless proxy at `/api/ollama` so the API key
-  // remains server-side. For local development, fall back to `VITE_OLLAMA_URL`.
-  const base = import.meta.env.PROD ? '/api/ollama' : (import.meta.env.VITE_OLLAMA_URL || 'http://localhost:11434');
-
-  const endpoint = import.meta.env.PROD ? `${base}` : `${base}/api/chat`;
+  // Use `VITE_OLLAMA_URL` to point the client at an Ollama-compatible API.
+  // Defaults to a local Ollama instance if not provided.
+  const base = import.meta.env.VITE_OLLAMA_URL || 'http://localhost:11434';
+  const endpoint = `${base.replace(/\/$/, '')}/api/chat`;
 
   try {
     const res = await fetch(endpoint, {

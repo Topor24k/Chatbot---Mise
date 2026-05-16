@@ -1,8 +1,6 @@
-# Setup and Deployment
+# Local Development
 
-This document contains setup, development, and deployment steps for running the project locally and on platforms such as Vercel. The instructions were moved out of the main README to keep that file concise and focused on the project description.
-
-## Local development
+This project is intended to be developed and run locally. The instructions below help you get started with a local Ollama-compatible API and the Vite frontend.
 
 1. Install dependencies.
 
@@ -10,7 +8,7 @@ This document contains setup, development, and deployment steps for running the 
 npm install
 ```
 
-2. Start Ollama (local deployment)
+2. Start Ollama (if using a local Ollama instance)
 
 ```bash
 ollama serve
@@ -22,23 +20,7 @@ ollama serve
 npm run dev
 ```
 
-## Environment Variables
+Environment variable:
+- `VITE_OLLAMA_URL`: optional base URL for the Ollama-compatible API the client should call. Defaults to `http://localhost:11434` when not set.
 
-- `VITE_OLLAMA_URL`: optional Ollama base URL for the browser client (local-only; not required when using server-side proxy)
-
-## Deployment (Vercel)
-
-Recommended: host the frontend on Vercel and keep your Ollama API key secret using a serverless proxy.
-
-1. In your Vercel Project Settings → Environment Variables add:
-  - `OLLAMA_URL` — the base URL for your Ollama deployment (e.g. https://api.ollama.cloud)
-  - `OLLAMA_API_KEY` — the API key you generated (do NOT expose this to the browser)
-
-2. The project includes a serverless proxy at `api/ollama.js` that forwards requests to `${OLLAMA_URL}/api/chat` using the server-side key. This keeps secrets out of client bundles.
-
-3. For local development, you can continue using `VITE_OLLAMA_URL` to point at a local Ollama: e.g. `http://localhost:11434`.
-
-## Security notes
-
-- Never store `OLLAMA_API_KEY` in `VITE_*` env vars — those are embedded in the client.
-- If you accidentally exposed a key (for example by pasting it into chat), revoke/regenerate it immediately in your provider dashboard.
+This document no longer contains deployment platform instructions — it focuses on local development only.

@@ -1,17 +1,17 @@
 # Mise Chatbot
-Mise Chatbot is a lightweight web client that provides a clean, responsive chat interface for interacting with language models via an Ollama-backed API. It demonstrates a small, practical example of combining a Vite + React (TypeScript) frontend with a minimal server-side proxy for forwarding model requests.
+Mise Chatbot is a lightweight web-based chatbot focused on answering food-related questions. It helps users with recipes, ingredient substitutions, dietary guidance, cooking tips, and restaurant suggestions.
 
 Key features:
-- Conversation UI with message list and input bar
-- Small serverless proxy for secure model requests
-- Example components and patterns for building chat apps
+- Conversational UI for natural question-and-answer interactions about food
+- Recipe lookup and step-by-step cooking guidance
+- Ingredient substitution suggestions and pantry-friendly alternatives
+- Dietary considerations (allergies, vegetarian/vegan, low-carb, etc.)
+- Small, reusable components for embedding the chat UI in apps
 
 Tech stack:
 - Frontend: Vite, React, TypeScript
-- Backend proxy: Node (serverless-friendly)
-- Models: Ollama-compatible deployments
+- Example API client included for model requests
 
 Notes:
-- Setup, deployment, and environment instructions have been moved to [docs/SETUP.md](docs/SETUP.md).
-- This workspace includes a short developer exercise demonstrating commit history and QA notes in the `commits/` folder.
+- This README focuses on the project's purpose and features rather than deployment or system configuration.
 
