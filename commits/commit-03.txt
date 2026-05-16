@@ -1,0 +1,3 @@
+Commit 03: Document parser edge-cases
+
+Added notes on parser edge-cases: duplicate nutrition headings, tips section leakage, and strategies to robustly separate ingredients and instructions. These notes will help future refactors and debugging.
