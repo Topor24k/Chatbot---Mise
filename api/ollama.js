@@ -9,6 +9,9 @@ export default async function handler(req, res) {
   const OLLAMA_URL = process.env.OLLAMA_URL;
   const OLLAMA_API_KEY = process.env.OLLAMA_API_KEY;
 
+  // Debug: do not log secret values — only presence
+  console.log('api/ollama handler init - OLLAMA_URL present?', !!OLLAMA_URL, 'OLLAMA_API_KEY present?', !!OLLAMA_API_KEY);
+
   if (!OLLAMA_URL) {
     return res.status(500).json({ error: 'OLLAMA_URL not set in environment' });
   }
