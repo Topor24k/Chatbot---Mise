@@ -1,5 +1,4 @@
 # Mise Chatbot
-
 Mise Chatbot is a lightweight web client that provides a clean, responsive chat interface for interacting with language models via an Ollama-backed API. It demonstrates a small, practical example of combining a Vite + React (TypeScript) frontend with a minimal server-side proxy for forwarding model requests.
 
 Key features:
@@ -15,6 +14,4 @@ Tech stack:
 Notes:
 - Setup, deployment, and environment instructions have been moved to [docs/SETUP.md](docs/SETUP.md).
 - This workspace includes a short developer exercise demonstrating commit history and QA notes in the `commits/` folder.
-
-If you'd like the README to include a short usage example or architecture diagram, I can add that next.
 
