@@ -28,7 +28,30 @@ export type RecipeIntent =
   | 'moodSearch'
   | 'favorites'
   | 'followUpYes'
-  | 'general';
+  | 'general'
+  | 'nutrition'
+  | 'cookingTime'
+  | 'difficulty'
+  | 'servings'
+  | 'substitution'
+  | 'dietaryRestriction'
+  | 'mealType'
+  | 'cuisineSearch'
+  | 'recipeRecommendation'
+  | 'similarRecipes'
+  | 'favoritesAdd'
+  | 'favoritesRemove' 
+  | 'favoritesCheck'
+  | 'stepByStepMode' 
+  | 'repeatStep'
+  | 'nextStep'
+  | 'previousStep'
+  | 'recipeHistory' 
+  | 'foodPairing'
+  | 'occasionSearch'
+  | 'quickRecipes' 
+  | 'shoppingList' 
+  | 'unknown';
 
 export type Language = 'en';
 

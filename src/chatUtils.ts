@@ -201,15 +201,21 @@ export function parseRecipeResponse(raw: string): Recipe | null {
   try {
     const parsed = JSON.parse(jsonText);
 
+    // Normalize nutrition keys: accept `carbs` or `carbohydrates` from model output
+    const parsedCalories = parsed.nutritionFacts?.calories ?? parsed.nutrition?.calories;
+    const parsedProtein = parsed.nutritionFacts?.protein ?? parsed.nutrition?.protein;
+    const parsedCarbs = parsed.nutritionFacts?.carbs ?? parsed.nutritionFacts?.carbohydrates ?? parsed.nutritionFacts?.carbohydrate ?? parsed.nutrition?.carbs ?? parsed.nutrition?.carbohydrates ?? parsed.nutrition?.carbohydrate;
+    const parsedFat = parsed.nutritionFacts?.fat ?? parsed.nutrition?.fat;
+
     return {
       name: cleanAssistantText(parsed.name || 'Recipe'),
       description: parsed.description ? cleanAssistantText(parsed.description) : undefined,
       cuisineType: cleanAssistantText(parsed.cuisineType || 'Filipino'),
       nutritionFacts: {
-        calories: cleanAssistantText(parsed.nutritionFacts?.calories || 'N/A'),
-        protein: cleanAssistantText(parsed.nutritionFacts?.protein || 'N/A'),
-        carbs: cleanAssistantText(parsed.nutritionFacts?.carbs || 'N/A'),
-        fat: cleanAssistantText(parsed.nutritionFacts?.fat || 'N/A'),
+        calories: cleanAssistantText(parsedCalories || 'N/A'),
+        protein: cleanAssistantText(parsedProtein || 'N/A'),
+        carbs: cleanAssistantText(parsedCarbs || 'N/A'),
+        fat: cleanAssistantText(parsedFat || 'N/A'),
       },
       ingredients: Array.isArray(parsed.ingredients) ? parsed.ingredients.map((item: string) => cleanAssistantText(String(item))) : [],
       instructions: Array.isArray(parsed.instructions) ? parsed.instructions.map((item: string) => cleanAssistantText(String(item))) : [],
