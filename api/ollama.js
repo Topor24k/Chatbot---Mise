@@ -17,7 +17,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    const upstream = await fetch(`${OLLAMA_URL.replace(/\/$/, '')}/api/chat`, {
+    const upstreamUrl = `${OLLAMA_URL.replace(/\/$/, '')}/api/chat`;
+    console.log('api/ollama upstream URL:', upstreamUrl);
+
+    const upstream = await fetch(upstreamUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -27,6 +30,8 @@ export default async function handler(req, res) {
     });
 
     const text = await upstream.text();
+    console.log('api/ollama upstream status:', upstream.status);
+    console.log('api/ollama upstream response snippet:', text.slice(0, 1000));
 
     // Try to parse JSON response, otherwise stream raw text
     try {
