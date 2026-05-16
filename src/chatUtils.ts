@@ -94,7 +94,7 @@ export function classifyIntent(text: string, lastIntent?: RecipeIntent, lastReci
     return lastIntent === 'ingredients' || (lastIntent === 'followUpYes' && lastRecipeName) ? 'followUpYes' : 'general';
   }
 
-  if (/^(show my favorites|what's in my favorites|whats in my favorites|list saved recipes|my saved recipes)$/i.test(normalized)) {
+  if (/(?:\b(saved recipes?|favorites?|favourites?)\b)/i.test(normalized) && /(?:\b(what|which|do|does|have|has|show|list|any|my)\b|\?)/i.test(normalized)) {
     return 'favorites';
   }
 
@@ -114,7 +114,7 @@ export function classifyIntent(text: string, lastIntent?: RecipeIntent, lastReci
     return 'description';
   }
 
-  if (/(i have|what can i make with|recipes using|i only have)/i.test(normalized)) {
+  if (/(?:\bi have\b(?!.*\b(saved recipes?|favorites?|favourites?)\b)|what can i make with|recipes using|i only have)/i.test(normalized)) {
     return 'ingredientSearch';
   }
 

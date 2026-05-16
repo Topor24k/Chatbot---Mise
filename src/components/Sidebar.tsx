@@ -64,8 +64,8 @@ export default function Sidebar({
                 <ChefHat size={20} className="text-white" />
               </div>
               <div>
-                <h1 className={styles.brandTitle}>Mise</h1>
-                <span className={styles.brandSubtitle}>ProCook Edition</span>
+                <h1 className={styles.brandTitle}>ProCook</h1>
+                <span className={styles.brandSubtitle}>Everything in its place</span>
               </div>
             </div>
           ) : (
