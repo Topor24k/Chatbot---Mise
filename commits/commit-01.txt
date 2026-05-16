@@ -1,3 +1,0 @@
-Commit 01: Clarify README and project description
-
-Updated project README summary to better reflect the purpose of the Mise chatbot and its core features: recipe cards, saved recipes, and intent routing. This change is intentionally small and descriptive to serve as the first demonstrative commit in a 10-commit sequence.

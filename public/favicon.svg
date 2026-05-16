@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Mise favicon">
+  <rect width="64" height="64" rx="16" fill="#07132B"/>
+  <path d="M18 25.5c0-2 1.6-3.5 3.5-3.5h2.3c1.2 0 2.3.6 2.9 1.6l5.3 8.6 5.3-8.6c.6-1 1.7-1.6 2.9-1.6h2.3c1.9 0 3.5 1.5 3.5 3.5V43h-5V29.7L33.7 40h-3.4l-9.1-10.3V43h-3.2V25.5Z" fill="#ffffff"/>
+  <circle cx="49" cy="15" r="4" fill="#FF1E1E"/>
+</svg>

@@ -1,3 +1,0 @@
-Commit 08: Add integration notes for Ollama API
-
-Notes describing how `getRecipeStructured` and `getChatResponse` interact with the Ollama local model, including expected formats, fallback logic, and troubleshooting tips when JSON parsing fails.

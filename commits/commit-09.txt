@@ -1,3 +1,0 @@
-Commit 09: Accessibility notes for RecipeCard
-
-Added accessibility improvements and review notes (aria roles, color contrast checks, and focus states) intended for the next UI polish iteration.

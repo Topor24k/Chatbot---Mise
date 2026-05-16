@@ -1,3 +1,0 @@
-Commit 02: Improve intent classification examples
-
-Added clarifying examples to intent classification notes to reduce ambiguous triggers. This file documents why certain phrasings map to 'fullRecipe' vs 'description' and provides test cases for future regression checks.

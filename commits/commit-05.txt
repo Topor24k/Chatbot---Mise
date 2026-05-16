@@ -1,3 +1,0 @@
-Commit 05: Add example recipe output expectations
-
-Documented the expected plain-text recipe card format the model should return (no emojis, no tips unless requested): sections for Recipe Name, Description, Ingredients, Cooking Instructions, Nutrition, Sustainability Note, Resource Tip, Zero-Waste Guidance.

@@ -1,3 +1,0 @@
-Commit 04: Add UI test checklist
-
-Created a short checklist for manual UI tests to verify RecipeCard rendering: title, description placement, ingredients-only list, steps-only list, nutrition tiles, and absence of tips or emojis.
