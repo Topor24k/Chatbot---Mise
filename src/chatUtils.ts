@@ -54,6 +54,12 @@ function normalizeText(text: string) {
   return text.trim().toLowerCase();
 }
 
+export function isFavoritesQuery(text: string) {
+  const normalized = normalizeText(text);
+  return /\b(saved recipes?|recipes? saved|favorites?|favourites?)\b/i.test(normalized)
+    && /(?:\b(what|which|do|does|have|has|show|list|any|my)\b|\?)/i.test(normalized);
+}
+
 export function extractDishName(text: string) {
   const value = text.trim();
   const patterns = [
@@ -94,7 +100,7 @@ export function classifyIntent(text: string, lastIntent?: RecipeIntent, lastReci
     return lastIntent === 'ingredients' || (lastIntent === 'followUpYes' && lastRecipeName) ? 'followUpYes' : 'general';
   }
 
-  if (/(?:\b(saved recipes?|favorites?|favourites?)\b)/i.test(normalized) && /(?:\b(what|which|do|does|have|has|show|list|any|my)\b|\?)/i.test(normalized)) {
+  if (isFavoritesQuery(normalized)) {
     return 'favorites';
   }
 

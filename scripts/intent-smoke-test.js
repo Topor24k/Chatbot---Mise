@@ -18,8 +18,8 @@ function classifyIntent(text){
   if(/(\bingredients?\b|ingredients? for|ingredients? of|what do i need for|what ingredients are in|list the ingredients for|give me the ingredients of)/i.test(normalized)) return 'ingredients';
   if(/(\bsteps?\b|how to cook|how do i make|cooking instructions for|give me the steps for|how to prepare|steps for|instructions for)/i.test(normalized)) return 'steps';
   if(/(what is|tell me about|describe|what kind of food is)/i.test(normalized)) return 'description';
-  if(/(?:\b(saved recipes?|favorites?|favourites?)\b)/i.test(normalized) && /(?:\b(what|which|do|does|have|has|show|list|any|my)\b|\?)/i.test(normalized)) return 'favorites';
-  if(/(?:\bi have\b(?!.*\b(saved recipes?|favorites?|favourites?)\b)|what can i make with|recipes using|i only have)/i.test(normalized)) return 'ingredientSearch';
+  if(/(?:\b(saved recipes?|recipes? saved|favorites?|favourites?)\b)/i.test(normalized) && /(?:\b(what|which|do|does|have|has|show|list|any|my)\b|\?)/i.test(normalized)) return 'favorites';
+  if(/(?:\bi have\b(?!.*\b(saved recipes?|recipes? saved|favorites?|favourites?)\b)|what can i make with|recipes using|i only have)/i.test(normalized)) return 'ingredientSearch';
   if(isAmbiguousFoodQuery(text)) return 'description';
   if(isMoodRecommendationQuery(text)) return 'moodSearch';
   return 'general';
@@ -31,6 +31,7 @@ const tests = [
   'Burger',
   'burger',
   'Do i have any saved Recipes?',
+  'Do i have any recipes saved?',
   "I'm sad what food you could recommend",
   'What should I eat?',
   'chocolate cake',

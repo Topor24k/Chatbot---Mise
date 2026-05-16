@@ -176,8 +176,76 @@ export default function MiseChat() {
     try {
       const dishName = extractDishName(textToSend);
       const favorites = savedRecipes.map(r => r.name);
+      const intent = classifyIntent(textToSend, lastIntent, lastRecipeName);
       const moodRecommendationQuery = isMoodRecommendationQuery(textToSend);
       const ambiguousQuery = isAmbiguousFoodQuery(textToSend);
+
+      if (intent === 'favorites') {
+        const responseText = favorites.length
+          ? `Your saved favorites are: ${favorites.join(', ')}. Say full recipe for a name to view it again.`
+          : `You haven't saved any recipes yet. Ask for a full recipe and tap to save it!`;
+
+        setLastIntent(intent);
+        setMessages(previous => [...previous, {
+          id: (Date.now() + 1).toString(),
+          role: 'model',
+          content: responseText,
+          timestamp: new Date(),
+        }]);
+        return;
+      }
+
+      if (intent === 'fullRecipe') {
+        let responseText = '';
+        let recipeData: Recipe | null = null;
+
+        recipeData = await getRecipeStructured(`${textToSend} (Reply in English)`);
+
+        if (recipeData) {
+          const recipe = recipeData;
+          const duplicate = savedRecipes.some(r => r.name.toLowerCase() === recipe.name.toLowerCase());
+          if (duplicate) {
+            responseText = `${recipe.name} is already in your favorites. Would you like an alternative version? I can offer a healthier variation, a budget-friendly version, a premium version, a different serving size, or a different preparation style. Which would you prefer?`;
+            recipeData = null;
+          } else {
+            responseText = 'Tap the button to save this to your favorites.';
+            setLastRecipeName(recipe.name.trim());
+          }
+        } else {
+          responseText = await getChatResponse([
+            { role: 'system', content: buildPrompt('fullRecipe', dishName || lastRecipeName, lang, favorites) },
+            { role: 'user', content: textToSend },
+          ], textToSend);
+
+          if (responseText && responseText !== '(No response)') {
+            const parsed = parseRecipeFromText(responseText);
+            if (parsed) {
+              recipeData = {
+                ...parsed,
+                name: parsed.name && parsed.name.toLowerCase() !== 'recipe' ? parsed.name : (dishName || lastRecipeName || parsed.name),
+                description: parsed.description || `A classic ${dishName || lastRecipeName || 'recipe'} that can be adapted to taste, budget, and local ingredients.`,
+              };
+              responseText = 'Tap the button to save this to your favorites.';
+              setLastRecipeName((recipeData.name || '').trim());
+            }
+          }
+
+          if (!recipeData && (!responseText || responseText === '(No response)')) {
+            const targetName = dishName || lastRecipeName || textToSend.trim();
+            responseText = `I can help with ${targetName}. Try asking for ingredients, cooking steps, or a full recipe. If you want, I can also give you a common, simple version first.`;
+          }
+        }
+
+        setLastIntent(intent);
+        setMessages(previous => [...previous, {
+          id: (Date.now() + 1).toString(),
+          role: 'model',
+          content: responseText,
+          recipe: recipeData || undefined,
+          timestamp: new Date(),
+        }]);
+        return;
+      }
 
       if (moodRecommendationQuery) {
         const intent = classifyIntent(textToSend, lastIntent, lastRecipeName);
@@ -230,54 +298,9 @@ export default function MiseChat() {
           return;
       }
 
-      const intent = classifyIntent(textToSend, lastIntent, lastRecipeName);
-
       let responseText = '';
       let recipeData: Recipe | null = null;
-
-      if (intent === 'favorites') {
-        responseText = favorites.length
-          ? `Your saved favorites are: ${favorites.join(', ')}. Say full recipe for a name to view it again.`
-          : `You haven't saved any recipes yet. Ask for a full recipe and tap to save it!`;
-      } else if (intent === 'fullRecipe') {
-        recipeData = await getRecipeStructured(`${textToSend} (Reply in English)`);
-
-        if (recipeData) {
-          const recipe = recipeData;
-          const duplicate = savedRecipes.some(r => r.name.toLowerCase() === recipe.name.toLowerCase());
-          if (duplicate) {
-            responseText = `${recipe.name} is already in your favorites. Would you like an alternative version? I can offer a healthier variation, a budget-friendly version, a premium version, a different serving size, or a different preparation style. Which would you prefer?`;
-            recipeData = null;
-          } else {
-            responseText = 'Tap the button to save this to your favorites.';
-              setLastRecipeName(recipe.name.trim());
-          }
-        } else {
-          responseText = await getChatResponse([
-            { role: 'system', content: buildPrompt('fullRecipe', dishName || lastRecipeName, lang, favorites) },
-            { role: 'user', content: textToSend },
-          ], textToSend);
-
-          // Try to parse structured recipe from the model's free-text response as a fallback
-          if (responseText && responseText !== '(No response)') {
-            const parsed = parseRecipeFromText(responseText);
-            if (parsed) {
-              recipeData = {
-                ...parsed,
-                name: parsed.name && parsed.name.toLowerCase() !== 'recipe' ? parsed.name : (dishName || lastRecipeName || parsed.name),
-                description: parsed.description || `A classic ${dishName || lastRecipeName || 'recipe'} that can be adapted to taste, budget, and local ingredients.`,
-              };
-              responseText = 'Tap the button to save this to your favorites.';
-              setLastRecipeName((recipeData.name || '').trim());
-            }
-          }
-
-          if (!recipeData && (!responseText || responseText === '(No response)')) {
-            const targetName = dishName || lastRecipeName || textToSend.trim();
-            responseText = `I can help with ${targetName}. Try asking for ingredients, cooking steps, or a full recipe. If you want, I can also give you a common, simple version first.`;
-          }
-        }
-      } else if (intent === 'ingredients' || intent === 'steps' || intent === 'description' || intent === 'ingredientSearch' || intent === 'flavorSearch' || intent === 'moodSearch' || intent === 'followUpYes') {
+      if (intent === 'ingredients' || intent === 'steps' || intent === 'description' || intent === 'ingredientSearch' || intent === 'flavorSearch' || intent === 'moodSearch' || intent === 'followUpYes') {
         responseText = await getChatResponse([
           { role: 'system', content: buildPrompt(intent, dishName || lastRecipeName, lang, favorites) },
           { role: 'user', content: textToSend },
