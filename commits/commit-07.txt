@@ -1,0 +1,3 @@
+Commit 07: Add QA checklist for recipe rendering
+
+Checklist for quality assurance: 1) No emojis in recipe text, 2) Description appears under title, 3) Tips sections are separate boxes, 4) Saved recipes persist to localStorage, 5) Intent routing handles ambiguous queries.
