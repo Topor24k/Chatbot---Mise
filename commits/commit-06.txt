@@ -1,0 +1,3 @@
+Commit 06: Add developer notes for parser fixes
+
+Explains the recent changes made to `parseRecipeFromText` including separate 'description' and 'tips' states, stricter heading detection, and prevention of tips from being appended to description or ingredient lists.
