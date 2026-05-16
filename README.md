@@ -1,43 +1,20 @@
 # Mise Chatbot
 
-## Setup
+Mise Chatbot is a lightweight web client that provides a clean, responsive chat interface for interacting with language models via an Ollama-backed API. It demonstrates a small, practical example of combining a Vite + React (TypeScript) frontend with a minimal server-side proxy for forwarding model requests.
 
-1. Install dependencies.
+Key features:
+- Conversation UI with message list and input bar
+- Small serverless proxy for secure model requests
+- Example components and patterns for building chat apps
 
-```bash
-npm install
-```
+Tech stack:
+- Frontend: Vite, React, TypeScript
+- Backend proxy: Node (serverless-friendly)
+- Models: Ollama-compatible deployments
 
-2. Start Ollama.
+Notes:
+- Setup, deployment, and environment instructions have been moved to [docs/SETUP.md](docs/SETUP.md).
+- This workspace includes a short developer exercise demonstrating commit history and QA notes in the `commits/` folder.
 
-```bash
-ollama serve
-```
-
-3. Start the Vite frontend.
-
-```bash
-npm run dev
-```
-
-## Environment Variables
-
-- `VITE_OLLAMA_URL`: optional Ollama base URL for the browser client
-A short note: This workspace includes a recent developer exercise where 10 small commits were added to demonstrate commit history and provide QA notes. These are included under the `commits/` folder.
-
-## Deployment (Vercel)
-
-Recommended: host the frontend on Vercel and keep your Ollama API key secret using a serverless proxy.
-
-1. In your Vercel Project Settings → Environment Variables add:
-	- `OLLAMA_URL` — the base URL for your Ollama deployment (e.g. https://api.ollama.cloud)
-	- `OLLAMA_API_KEY` — the API key you generated (do NOT expose this to the browser)
-
-2. The project includes a serverless proxy at `api/ollama.js` that forwards requests to `${OLLAMA_URL}/api/chat` using the server-side key. This keeps secrets out of client bundles.
-
-3. For local development, you can continue using `VITE_OLLAMA_URL` to point at a local Ollama: e.g. `http://localhost:11434`.
-
-Security notes:
-- Never store `OLLAMA_API_KEY` in `VITE_*` env vars — those are embedded in the client.
-- If you accidentally exposed a key (for example by pasting it into chat), revoke/regenerate it immediately in your provider dashboard.
+If you'd like the README to include a short usage example or architecture diagram, I can add that next.
 
