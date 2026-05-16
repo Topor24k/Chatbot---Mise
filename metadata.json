@@ -1,0 +1,7 @@
+{
+  "name": "PROCOOK",
+  "description": "An ethical culinary AI named Mise that helps with recipes, market hacks, and regional guidance across many languages.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [],
+  "commitExercise": "10-commit-demo"
+}
