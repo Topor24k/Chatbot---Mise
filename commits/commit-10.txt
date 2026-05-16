@@ -1,0 +1,3 @@
+Commit 10: Add final summary and next steps
+
+Summarizes the 10-commit sequence purpose: to create traceable, well-documented checkpoints for QA and to make it easy to inspect the rationale behind parser and UI adjustments. Lists suggested next steps: automated tests, CI linting, and optional push to GitHub.
