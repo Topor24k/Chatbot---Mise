@@ -1,4 +1,4 @@
-import { Clock, ChefHat, Globe, Send, Utensils, AlertTriangle, Tool, Trash2 } from 'lucide-react';
+import { Clock, ChefHat, Globe, Send, Utensils, AlertTriangle, Wrench, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Recipe } from '../chatTypes';
 import { cleanAssistantText } from '../chatUtils';
@@ -86,7 +86,7 @@ export default function RecipeCard({ recipe, onSave, isSaved }: RecipeCardProps)
 
             {recipe.resourceConservationTip && (
               <div className="flex gap-4 p-4 bg-[#F0F6F1] border border-[#D8E8DC] rounded-2xl">
-                <Tool size={20} className="text-[#4B7052] shrink-0" />
+                <Wrench size={20} className="text-[#4B7052] shrink-0" />
                 <div>
                   <h3 className="text-[11px] font-bold text-[#4B7052] uppercase tracking-[0.25em] mb-2">Chef's Secret</h3>
                   <p className="text-sm text-[#4B7052] italic leading-relaxed">Resource Conservation Tip: {cleanAssistantText(recipe.resourceConservationTip)}</p>
