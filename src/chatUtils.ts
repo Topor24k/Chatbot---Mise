@@ -54,6 +54,53 @@ function normalizeText(text: string) {
   return text.trim().toLowerCase();
 }
 
+export function detectCuisine(texts: (string | undefined)[]) {
+  const candidates = ['filipino','italian','french','mexican','indian','japanese','chinese','thai','spanish','greek','american','moroccan','lebanese','vietnamese','korean','turkish','brazilian','peruvian','ethiopian','german','russian','portuguese'];
+  for (const t of texts) {
+    if (!t) continue;
+    const lower = t.toLowerCase();
+    for (const c of candidates) {
+      if (new RegExp(`\\b${c}\\b`, 'i').test(lower)) return c.charAt(0).toUpperCase() + c.slice(1);
+    }
+  }
+  return undefined;
+}
+
+export function estimateCarbsFromIngredients(ingredients: string[] | string): string | null {
+  const text = Array.isArray(ingredients) ? ingredients.join(' ').toLowerCase() : String(ingredients || '').toLowerCase();
+  const mapping: Record<string, number> = {
+    rice: 40,
+    pasta: 37,
+    noodle: 37,
+    bread: 15,
+    potato: 30,
+    yam: 30,
+    beans: 20,
+    lentil: 20,
+    corn: 19,
+    oats: 27,
+    flour: 22,
+    sugar: 4,
+    tortilla: 20,
+    quinoa: 21,
+    barley: 22,
+    couscous: 23,
+    chickpea: 20,
+  };
+
+  let total = 0;
+  for (const key of Object.keys(mapping)) {
+    if (new RegExp(`\\b${key}s?\\b`, 'i').test(text)) {
+      total += mapping[key];
+    }
+  }
+
+  if (total <= 0) return null;
+  // Clamp and round
+  total = Math.min(Math.max(Math.round(total), 5), 200);
+  return `${total} g (estimated)`;
+}
+
 export function isFavoritesQuery(text: string) {
   const normalized = normalizeText(text);
   return /\b(saved recipes?|recipes? saved|favorites?|favourites?)\b/i.test(normalized)
@@ -93,6 +140,12 @@ export function isMoodRecommendationQuery(text: string) {
     || /\b(sad|down|depressed|lonely|bored|tired|stressed|anxious|happy|excited|angry|upset|hungry|craving|comforting|relaxed|relaxing|sick)\b/i.test(normalized);
 }
 
+export function isRecipeRecommendationQuery(text: string) {
+  const normalized = normalizeText(text);
+  return /\b(give me|suggest|recommend|what is a|what's a|whats a|find me|need a|want a)\b.*\b(dish|recipe|meal|food)\b/i.test(normalized)
+    || /\b(dish|recipe|meal|food)\b.*\b(creamy|soupy|soup-like|soup like|thick|velvety|rich|light|hearty|smooth|spicy|sweet|savory)\b/i.test(normalized);
+}
+
 export function classifyIntent(text: string, lastIntent?: RecipeIntent, lastRecipeName?: string): RecipeIntent {
   const normalized = normalizeText(text);
 
@@ -126,6 +179,10 @@ export function classifyIntent(text: string, lastIntent?: RecipeIntent, lastReci
 
   if (/(spicy|sweet|sour|savory|rich flavor)/i.test(normalized)) {
     return 'flavorSearch';
+  }
+
+  if (isRecipeRecommendationQuery(normalized)) {
+    return 'fullRecipe';
   }
 
   if (/(comfort|happy|romantic|energizing|relaxing|stressed|sad|down|depressed|lonely|bored|tired|anxious|upset|hungry|craving|sick)/i.test(normalized) || /\b(recommend|recommendation|suggest|suggestion|what food|what should i eat|what can i eat|what can you recommend)\b/i.test(normalized)) {
@@ -213,15 +270,33 @@ export function parseRecipeResponse(raw: string): Recipe | null {
     const parsedCarbs = parsed.nutritionFacts?.carbs ?? parsed.nutritionFacts?.carbohydrates ?? parsed.nutritionFacts?.carbohydrate ?? parsed.nutrition?.carbs ?? parsed.nutrition?.carbohydrates ?? parsed.nutrition?.carbohydrate;
     const parsedFat = parsed.nutritionFacts?.fat ?? parsed.nutrition?.fat;
 
-    return {
+    const rawCuisine = parsed.cuisineType;
+
+    function detectCuisine(texts: (string | undefined)[]) {
+      const candidates = ['filipino','italian','french','mexican','indian','japanese','chinese','thai','spanish','greek','american','moroccan','lebanese','vietnamese','korean','turkish','brazilian','peruvian','ethiopian','german','russian','portuguese'];
+      for (const t of texts) {
+        if (!t) continue;
+        const lower = t.toLowerCase();
+        for (const c of candidates) {
+          if (new RegExp(`\\b${c}\\b`, 'i').test(lower)) return c.charAt(0).toUpperCase() + c.slice(1);
+        }
+      }
+      return undefined;
+    }
+
+    const cuisineDetected = detectCuisine([parsed.cuisineType, parsed.description, (parsed.ingredients || []).join(' '), parsed.name]);
+    const cuisine = cuisineDetected || (typeof rawCuisine === 'string' && rawCuisine.trim().toLowerCase() === 'various' ? undefined : rawCuisine);
+
+    const result: Recipe = {
       name: cleanAssistantText(parsed.name || 'Recipe'),
       description: parsed.description ? cleanAssistantText(parsed.description) : undefined,
-      cuisineType: cleanAssistantText(parsed.cuisineType || 'Filipino'),
+      cuisineType: cleanAssistantText(cuisine || 'Where the Recipe Originated From'),
+      // Estimate missing nutrition where possible (may be replaced below)
       nutritionFacts: {
-        calories: cleanAssistantText(parsedCalories || 'N/A'),
-        protein: cleanAssistantText(parsedProtein || 'N/A'),
-        carbs: cleanAssistantText(parsedCarbs || 'N/A'),
-        fat: cleanAssistantText(parsedFat || 'N/A'),
+        calories: cleanAssistantText(parsedCalories ?? 'N/A'),
+        protein: cleanAssistantText(parsedProtein ?? 'N/A'),
+        carbs: cleanAssistantText(parsedCarbs ?? 'N/A'),
+        fat: cleanAssistantText(parsedFat ?? 'N/A'),
       },
       ingredients: Array.isArray(parsed.ingredients) ? parsed.ingredients.map((item: string) => cleanAssistantText(String(item))) : [],
       instructions: Array.isArray(parsed.instructions) ? parsed.instructions.map((item: string) => cleanAssistantText(String(item))) : [],
@@ -229,6 +304,15 @@ export function parseRecipeResponse(raw: string): Recipe | null {
       wasteZeroGuidance: Array.isArray(parsed.wasteZeroGuidance) ? parsed.wasteZeroGuidance.map((item: string) => cleanAssistantText(String(item))) : undefined,
       resourceConservationTip: parsed.resourceConservationTip ? cleanAssistantText(parsed.resourceConservationTip) : undefined,
     };
+
+    // If carbs missing, try to estimate from ingredients
+    if (result.nutritionFacts.carbs === 'N/A' || !result.nutritionFacts.carbs) {
+      const est = estimateCarbsFromIngredients(result.ingredients);
+      if (est) result.nutritionFacts.carbs = est;
+    }
+
+    return result;
+    
   } catch {
     return null;
   }
@@ -424,10 +508,19 @@ export function parseRecipeFromText(raw: string): Recipe | null {
 
   description = cleanAssistantText(descriptionLines.slice(0, 2).join(' ').trim());
 
+  const cuisineDetected = detectCuisine([name, description, ingredients.join(' ')]);
+  const cuisineType = cuisineDetected || 'Where the Recipe Originated From';
+
+  // If carbs missing, try to estimate from ingredients
+  if ((!nutrition.carbs || nutrition.carbs === 'N/A') && ingredients.length > 0) {
+    const est = estimateCarbsFromIngredients(ingredients);
+    if (est) nutrition.carbs = est;
+  }
+
   return {
     name: cleanAssistantText(name),
     description: description || undefined,
-    cuisineType: 'Various',
+    cuisineType: cuisineType,
     nutritionFacts: nutrition,
     ingredients: ingredients.map(item => cleanAssistantText(item)),
     instructions: instructions.map(item => cleanAssistantText(item)),

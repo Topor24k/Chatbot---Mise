@@ -13,6 +13,12 @@ function isMoodRecommendationQuery(text){
     || /\b(sad|down|depressed|lonely|bored|tired|stressed|anxious|happy|excited|angry|upset|hungry|craving|comforting|relaxed|relaxing|sick)\b/i.test(normalized);
 }
 
+function isRecipeRecommendationQuery(text){
+  const normalized = normalize(text);
+  return /\b(give me|suggest|recommend|what is a|what's a|whats a|find me|need a|want a)\b.*\b(dish|recipe|meal|food)\b/i.test(normalized)
+    || /\b(dish|recipe|meal|food)\b.*\b(creamy|soupy|soup-like|soup like|thick|velvety|rich|light|hearty|smooth|spicy|sweet|savory)\b/i.test(normalized);
+}
+
 function classifyIntent(text){
   const normalized = normalize(text);
   if(/(\bingredients?\b|ingredients? for|ingredients? of|what do i need for|what ingredients are in|list the ingredients for|give me the ingredients of)/i.test(normalized)) return 'ingredients';
@@ -20,6 +26,7 @@ function classifyIntent(text){
   if(/(what is|tell me about|describe|what kind of food is)/i.test(normalized)) return 'description';
   if(/(?:\b(saved recipes?|recipes? saved|favorites?|favourites?)\b)/i.test(normalized) && /(?:\b(what|which|do|does|have|has|show|list|any|my)\b|\?)/i.test(normalized)) return 'favorites';
   if(/(?:\bi have\b(?!.*\b(saved recipes?|recipes? saved|favorites?|favourites?)\b)|what can i make with|recipes using|i only have)/i.test(normalized)) return 'ingredientSearch';
+  if(isRecipeRecommendationQuery(text)) return 'fullRecipe';
   if(isAmbiguousFoodQuery(text)) return 'description';
   if(isMoodRecommendationQuery(text)) return 'moodSearch';
   return 'general';
@@ -32,6 +39,7 @@ const tests = [
   'burger',
   'Do i have any saved Recipes?',
   'Do i have any recipes saved?',
+  'Give me a dish that is creamy and look like a soup',
   "I'm sad what food you could recommend",
   'What should I eat?',
   'chocolate cake',
