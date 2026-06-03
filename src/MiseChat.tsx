@@ -6,7 +6,9 @@ import Sidebar from './components/Sidebar';
 import { buildPrompt, classifyIntent, extractDishName, getChatResponse, getInitialMessage, getRecipeStructured, parseRecipeFromText, isAmbiguousFoodQuery, isMoodRecommendationQuery } from './chatUtils';
 import { Language, Message, Recipe, RecipeIntent, SavedSession } from './chatTypes';
 
-const HISTORY_KEY = 'mise_chat_history_v1';
+// `HISTORY_KEY` is the browser `localStorage` key for saved chat sessions.
+// Topics: Session Persistence (localStorage), React state hydration, UI history.
+const HISTORY_KEY = 'mise_chat_history_v1'; // localStorage key used to persist chat sessions
 
 export default function MiseChat() {
   const [lang, setLang] = useState<Language>('en');
@@ -27,9 +29,13 @@ export default function MiseChat() {
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Load persisted chat session history from `localStorage` on mount.
+  // This provides simple session persistence in the browser so users can restore past conversations without a server-side store.
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(HISTORY_KEY);
+      // Read persisted session list from browser storage. This is a local-only persistence strategy (no server). Relates to:
+      // Session Persistence, Browser localStorage, React lifecycle.
+      const raw = localStorage.getItem(HISTORY_KEY); // read persisted session list from browser storage
       if (!raw) return;
       const parsed = JSON.parse(raw) as SavedSession[];
       setHistoryList(Array.isArray(parsed) ? parsed : []);
@@ -38,9 +44,13 @@ export default function MiseChat() {
     }
   }, []);
 
+  // Load saved recipes persisted in `localStorage`. Saved recipes are simple
+  // serialized `Recipe` objects produced by structured parsing of model output (see `parseRecipeResponse` in `chatUtils.ts`).
   useEffect(() => {
     try {
-      const raw = localStorage.getItem('mise_saved_recipes_v1');
+      // Load saved recipes produced by structured parsing of model output.
+      // Topics: Structured Output Parsing (LLM -> `Recipe`), Session Persistence.
+      const raw = localStorage.getItem('mise_saved_recipes_v1'); // read persisted saved recipes (structured `Recipe` JSON)
       if (!raw) return;
       const parsed = JSON.parse(raw) as Recipe[];
       setSavedRecipes(Array.isArray(parsed) ? parsed : []);
@@ -66,7 +76,10 @@ export default function MiseChat() {
   function persistHistory(nextHistory: SavedSession[]) {
     setHistoryList(nextHistory);
     try {
-      localStorage.setItem(HISTORY_KEY, JSON.stringify(nextHistory));
+      // Persist sessions to `localStorage` so the UI can restore them later.
+      // This is local-only session persistence (no server storage).
+      // Relates to: Session Persistence, Browser localStorage.
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(nextHistory)); // persist sessions to browser storage
     } catch (error) {
       console.warn('Failed to persist local chat history', error);
     }
@@ -82,6 +95,9 @@ export default function MiseChat() {
     if (messages.length === 0) return;
     if (messages.length === 1 && messages[0].id === 'welcome') return;
 
+    // Construct a `SavedSession` entry to persist. The `messages` array is
+    // serialized (timestamps to ISO) so it can be rehydrated on load.
+    // Topics: Session Management, Serialization, localStorage.
     const entry: SavedSession = {
       id: Date.now().toString(),
       title: sessionTitleFromMessages(messages),
@@ -131,7 +147,12 @@ export default function MiseChat() {
       const exists = prev.some(r => r.name.toLowerCase() === recipe.name.toLowerCase());
       if (exists) return prev;
       const next = [...prev, recipe];
-      try { localStorage.setItem('mise_saved_recipes_v1', JSON.stringify(next)); } catch (e) { console.warn('Failed to persist saved recipes', e); }
+      try {
+        // Persist structured `Recipe` objects so favorites can be listed
+        // without re-calling the model. Relates to: Recipe Generation,
+        // Structured Output Parsing, Session Persistence.
+        localStorage.setItem('mise_saved_recipes_v1', JSON.stringify(next));
+      } catch (e) { console.warn('Failed to persist saved recipes', e); } // persist saved `Recipe` objects
       return next;
     });
   }
@@ -139,7 +160,7 @@ export default function MiseChat() {
   function deleteSavedRecipe(name: string) {
     setSavedRecipes(prev => {
       const next = prev.filter(r => r.name.toLowerCase() !== name.toLowerCase());
-      try { localStorage.setItem('mise_saved_recipes_v1', JSON.stringify(next)); } catch (e) { console.warn('Failed to persist saved recipes', e); }
+      try { localStorage.setItem('mise_saved_recipes_v1', JSON.stringify(next)); } catch (e) { console.warn('Failed to persist saved recipes', e); } // update localStorage after deleting a saved recipe
       return next;
     });
   }
@@ -154,6 +175,8 @@ export default function MiseChat() {
       recipe,
       timestamp: new Date(),
     }]);
+    // Opening a saved recipe sets the last intent so follow-up actions
+    // (like asking for steps or ingredients) behave as if the recipe was just presented. Relates to: Deterministic Intent Heuristics.
     setLastIntent('fullRecipe');
     setLastRecipeName(recipe.name);
   }
@@ -174,11 +197,14 @@ export default function MiseChat() {
     setIsLoading(true);
 
     try {
-      const dishName = extractDishName(textToSend);
+      // 1) Lightweight NLP heuristics to extract dish name and classify intent
+      // without calling the LLM. Relates to: Intent Classification,
+      // Deterministic Intent Heuristics, Context-Aware Culinary Guidance.
+      const dishName = extractDishName(textToSend); // lightweight extraction of a dish name from the user's text (regex heuristics)
       const favorites = savedRecipes.map(r => r.name);
-      const intent = classifyIntent(textToSend, lastIntent, lastRecipeName);
-      const moodRecommendationQuery = isMoodRecommendationQuery(textToSend);
-      const ambiguousQuery = isAmbiguousFoodQuery(textToSend);
+      const intent = classifyIntent(textToSend, lastIntent, lastRecipeName); // rule-based intent label (e.g., 'fullRecipe', 'ingredients', 'steps')
+      const moodRecommendationQuery = isMoodRecommendationQuery(textToSend); // heuristic: does the query ask for mood-based suggestions?
+      const ambiguousQuery = isAmbiguousFoodQuery(textToSend); // short/vague food names trigger a clarifying description
 
       if (intent === 'favorites') {
         const responseText = favorites.length
@@ -195,11 +221,19 @@ export default function MiseChat() {
         return;
       }
 
+      // Full recipe path: prefer structured LLM output for reliable parsing.
+      // The code first tries `getRecipeStructured` which requests JSON from
+      // the model (see `chatUtils.getRecipeStructured`). If parsing fails,
+      // fall back to free-form text and `parseRecipeFromText`.
       if (intent === 'fullRecipe') {
         let responseText = '';
         let recipeData: Recipe | null = null;
 
-        recipeData = await getRecipeStructured(`${textToSend} (Reply in English)`);
+        // Request structured JSON from the model via Ollama (Qwen 2.5 7B
+        // Instruct is used by default in `getRecipeStructured`). This is the
+        // main Transformer-based invocation path. Relates to: Ollama,
+        // Transformer-Based Architecture, Structured Output Parsing.
+        recipeData = await getRecipeStructured(`${textToSend} (Reply in English)`); // ask the LLM to reply ONLY with structured JSON for reliable parsing
 
         if (recipeData) {
           const recipe = recipeData;
@@ -212,13 +246,15 @@ export default function MiseChat() {
             setLastRecipeName(recipe.name.trim());
           }
         } else {
+          // Fallback: when structured JSON parsing fails, request a free-form recipe and then attempt to parse it into a `Recipe` object.
+          // Fallback: request free-form recipe text and attempt to parse it into the `Recipe` shape using `parseRecipeFromText`.
           responseText = await getChatResponse([
             { role: 'system', content: buildPrompt('fullRecipe', dishName || lastRecipeName, lang, favorites) },
             { role: 'user', content: textToSend },
           ], textToSend);
 
           if (responseText && responseText !== '(No response)') {
-            const parsed = parseRecipeFromText(responseText);
+            const parsed = parseRecipeFromText(responseText); // try to convert free-form recipe text into the `Recipe` shape
             if (parsed) {
               recipeData = {
                 ...parsed,
@@ -236,12 +272,15 @@ export default function MiseChat() {
           }
         }
 
+        // Attach any parsed `recipe` to the assistant message so the UI can
+        // render a `RecipeCard` and provide a save button. Relates to: UI
+        // rendering, Structured Output Parsing, Recipe Generation.
         setLastIntent(intent);
         setMessages(previous => [...previous, {
           id: (Date.now() + 1).toString(),
           role: 'model',
           content: responseText,
-          recipe: recipeData || undefined,
+          recipe: recipeData || undefined, // attach parsed/structured Recipe for the UI to render recipe cards or allow saving
           timestamp: new Date(),
         }]);
         return;
