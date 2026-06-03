@@ -14,4 +14,5 @@ Tech stack:
 
 Notes:
 - This README focuses on the project's purpose and features rather than deployment or system configuration.
+- For a step-by-step explanation of how a user prompt becomes a chatbot response, see [docs/USER_PROMPT_TO_RESPONSE_GUIDE.md](docs/USER_PROMPT_TO_RESPONSE_GUIDE.md).
 
