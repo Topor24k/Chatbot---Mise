@@ -2,6 +2,7 @@ import misePrompt from '../Mise.md?raw';
 import { sendMessage } from './api/ollama';
 import { Language, Message, Recipe, RecipeIntent } from './chatTypes';
 
+
 export const SYSTEM_PROMPT = misePrompt.trim();
 
 export function cleanAssistantText(text: string): string {
@@ -47,7 +48,28 @@ export function sanitizeAssistantText(text?: string, userPrompt?: string): strin
     return beforeEcho || joined;
   }
 
+  if (looksLikeGenericExampleList(joined)) {
+    return 'I can help with food and cooking questions. Ask me about a dish, ingredient, or meal plan.';
+  }
+
   return joined;
+}
+
+function looksLikeGenericExampleList(text: string) {
+  const normalized = text.trim();
+  if (!normalized) return false;
+
+  const items = normalized
+    .split(',')
+    .map(item => item.trim())
+    .filter(Boolean);
+
+  if (items.length < 3 || items.length > 6) return false;
+  if (/\b(recipe|ingredient|ingredients|cook|cooking|meal|dish|food|kitchen|recipe card)\b/i.test(normalized)) return false;
+  if (!/[,]/.test(normalized)) return false;
+
+  const genericTerms = /\b(facebook|sports|programming|java|code|technology|tech|music|movies|games|apps|software|science|math|history|business|finance|travel|education|health|news)\b/i;
+  return items.every(item => genericTerms.test(item) || /^[A-Z][A-Za-z0-9 +.-]{1,30}$/.test(item));
 }
 
 function normalizeText(text: string) {
@@ -148,7 +170,6 @@ export function isRecipeRecommendationQuery(text: string) {
 
 export function classifyIntent(text: string, lastIntent?: RecipeIntent, lastRecipeName?: string): RecipeIntent {
   const normalized = normalizeText(text);
-
   if (/^(yes|yes please|sure|please|go ahead|give me the steps|ok|okay|yeah|yep|give it to me)$/i.test(normalized)) {
     return lastIntent === 'ingredients' || (lastIntent === 'followUpYes' && lastRecipeName) ? 'followUpYes' : 'general';
   }
@@ -157,11 +178,13 @@ export function classifyIntent(text: string, lastIntent?: RecipeIntent, lastReci
     return 'favorites';
   }
 
+  // Full recipe requests usually trigger structured output prompts so the
   if (/(?:\bfull\b|\bcomplete\b|everything about|full information on|give me the complete|i want the full|complete details of|full guide|full recipe|complete recipe|recipe for|recipe of|show me the recipe|give me a recipe|how to make|how do i make|how to cook|teach me how to cook|i want to cook|how is .+ made)/i.test(normalized)) {
     return 'fullRecipe';
   }
 
-  if (/(\bingredients?\b|ingredients? for|ingredients? of|what do i need for|what ingredients are in|list the ingredients for|give me the ingredients of)/i.test(normalized)) {
+  // Ingredient requests map to substitution and ingredient-list intents.
+    if (/(ingredients?|ingredients? for|ingredients? of|what do i need for|what ingredients are in|list the ingredients for|give me the ingredients of)/i.test(normalized)) {
     return 'ingredients';
   }
 
@@ -262,6 +285,8 @@ export function parseRecipeResponse(raw: string): Recipe | null {
     : cleaned;
 
   try {
+    // Parse JSON emitted by the transformer model (when asked to return structured output). Models may use slightly different keys — this
+    // logic normalizes them into the `Recipe` shape. Relates to: Structured Output Parsing, Transformer-Based Architecture (LLMs).
     const parsed = JSON.parse(jsonText);
 
     // Normalize nutrition keys: accept `carbs` or `carbohydrates` from model output
@@ -271,19 +296,6 @@ export function parseRecipeResponse(raw: string): Recipe | null {
     const parsedFat = parsed.nutritionFacts?.fat ?? parsed.nutrition?.fat;
 
     const rawCuisine = parsed.cuisineType;
-
-    function detectCuisine(texts: (string | undefined)[]) {
-      const candidates = ['filipino','italian','french','mexican','indian','japanese','chinese','thai','spanish','greek','american','moroccan','lebanese','vietnamese','korean','turkish','brazilian','peruvian','ethiopian','german','russian','portuguese'];
-      for (const t of texts) {
-        if (!t) continue;
-        const lower = t.toLowerCase();
-        for (const c of candidates) {
-          if (new RegExp(`\\b${c}\\b`, 'i').test(lower)) return c.charAt(0).toUpperCase() + c.slice(1);
-        }
-      }
-      return undefined;
-    }
-
     const cuisineDetected = detectCuisine([parsed.cuisineType, parsed.description, (parsed.ingredients || []).join(' '), parsed.name]);
     const cuisine = cuisineDetected || (typeof rawCuisine === 'string' && rawCuisine.trim().toLowerCase() === 'various' ? undefined : rawCuisine);
 
@@ -324,6 +336,8 @@ export async function getChatResponse(history: Array<{ role: string; content: st
     content: message.content,
   }));
 
+  // Build payload and call `sendMessage` which proxies to an Ollama- compatible API. The remote server runs the transformer model 
+  // (e.g. Qwen 2.5 7B Instruct) and returns model-generated text. Relates to: Ollama, Transformer-Based Architecture, LLM.
   const payload = [{ role: 'system', content: SYSTEM_PROMPT }, ...mapped];
   const reply = await sendMessage(payload);
   return typeof reply === 'string' ? sanitizeAssistantText(reply, userPrompt) : '(No response)';
@@ -337,6 +351,8 @@ export async function getRecipeStructured(prompt: string): Promise<Recipe | null
   ];
 
   try {
+    // Ask the model for structured JSON. We explicitly pass a model id (e.g., 'qwen2.5:7b') to the Ollama server so it routes to the
+    // intended transformer. `format: 'json'` indicates we expect JSON. Relates to: Qwen 2.5 7B Instruct, Ollama, Structured Output Parsing.
     const raw = await sendMessage(payload, 'qwen2.5:7b', { format: 'json' });
     if (!raw) return null;
 
@@ -373,7 +389,6 @@ export function parseRecipeFromText(raw: string): Recipe | null {
   let sustainabilityNote = '';
   let resourceConservationTip = '';
   const descriptionLines: string[] = [];
-
   const asValue = (value?: string) => cleanAssistantText((value ?? '').replace(/^[:\-\s]+/, '').trim()) || 'N/A';
 
   for (const rawLine of lines) {
