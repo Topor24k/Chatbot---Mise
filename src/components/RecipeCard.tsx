@@ -54,6 +54,9 @@ export default function RecipeCard({ recipe, onSave, isSaved }: RecipeCardProps)
       </div>
 
       <div className={styles.body}>
+        {/* Nutrition tiles are populated from the parsed `Recipe.nutritionFacts`.
+            These values come from the model's structured JSON or from estimation
+            logic in `chatUtils` when the model omits carbs. */}
         <div className={styles.nutritionGrid}>
           <NutritionTile label="Cal" value={cleanAssistantText(recipe.nutritionFacts.calories)} />
           <NutritionTile label="Protein" value={cleanAssistantText(recipe.nutritionFacts.protein)} />
@@ -95,6 +98,10 @@ export default function RecipeCard({ recipe, onSave, isSaved }: RecipeCardProps)
 
         {(recipe.sustainabilityNote || recipe.resourceConservationTip || recipe.wasteZeroGuidance) && (
           <div className="space-y-4 pt-4">
+            {/* Sustainability/resource/waste sections are optional fields produced
+                by the structured recipe output. They are shown when present so
+                users see eco-friendly tips and zero-waste guidance alongside
+                the recipe. */}
             {recipe.sustainabilityNote && (
               <div className={`${styles.noteBlock} ${styles.sustainability}`}>
                 <AlertTriangle size={20} className="text-[#8B6B3E] shrink-0" />
@@ -141,6 +148,8 @@ export default function RecipeCard({ recipe, onSave, isSaved }: RecipeCardProps)
             </div>
             <span className={styles.footerText}>Guaranteed Ethical</span>
           </div>
+          {/* `onSave` notifies the parent to persist this recipe (e.g., to
+              `localStorage`). `isSaved` toggles the button label. */}
           <button onClick={onSave} className={styles.saveButton}>
             {isSaved ? 'Saved' : 'Tap to Save'}
             <Send size={10} />
