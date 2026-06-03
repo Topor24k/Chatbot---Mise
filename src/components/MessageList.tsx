@@ -56,6 +56,10 @@ export default function MessageList({ messages, savedRecipes, isLoading, scrollR
                 <div className="space-y-4 flex-1">
                   <div className={styles.messageBox(message.role)}>
                     <div className={styles.messageText}>
+                      {/* If the assistant message includes a structured `recipe` object,
+                          the UI renders that `RecipeCard` separately below. Otherwise,
+                          display filtered assistant text (remove verbose sustainability
+                          blocks when appropriate). */}
                       {message.role === 'model' && !message.recipe ? filterAssistantContent(message.content) : message.content}
                     </div>
                     <div className={styles.timestamp(message.role)}>
@@ -63,6 +67,9 @@ export default function MessageList({ messages, savedRecipes, isLoading, scrollR
                     </div>
                   </div>
 
+                  {/* When a `Recipe` is attached to a message (parsed from LLM output),
+                      render a `RecipeCard`. The `onSave` callback persists the recipe
+                      to `localStorage` via the parent `MiseChat` component. */}
                   {message.recipe && (
                     <RecipeCard
                       recipe={message.recipe}
