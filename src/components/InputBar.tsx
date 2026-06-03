@@ -35,16 +35,19 @@ export default function InputBar({ lang, input, isLoading, onInputChange, onSend
 
         <div className={styles.inputCard}>
           <Paperclip className={styles.paperclip} size={18} />
+          {/* Text input bound to parent state. `onInputChange` updates state in `MiseChat`,
+              and pressing Enter or clicking Send triggers `onSend()` which calls the LLM. */}
           <input
             id="mise-message-input"
             name="message"
             type="text"
             value={input}
             onChange={(event: { target: HTMLInputElement }) => onInputChange(event.target.value)}
-            onKeyDown={(event: { key: string }) => event.key === 'Enter' && onSend()}
+            onKeyDown={(event: { key: string }) => event.key === 'Enter' && onSend()} // Enter submits the message
             placeholder={'Describe ingredients or ask for a recipe...'}
             className={styles.input}
           />
+          {/* Send button triggers parent `handleSend` which handles intent classification and LLM calls */}
           <button onClick={onSend} disabled={!input.trim() || isLoading} className={styles.sendButton}>
             <span>Send</span>
             <Send size={14} />
