@@ -1,0 +1,33 @@
+text,true_label
+fries ingredients,ingredients
+ingredients for adobo,ingredients
+what ingredients are in sinigang,ingredients
+list the ingredients for pancit,ingredients
+how to cook adobo,steps
+steps for kare-kare,steps
+instructions for tinola,steps
+how do i make champorado,steps
+what is adobo,description
+tell me about pancit,description
+describe sinigang,description
+what kind of food is kare-kare,description
+do i have any saved recipes?,favorites
+show my favorites,favorites
+list my favourite recipes,favorites
+do i have recipes saved,favorites
+i have chicken and potatoes,ingredientSearch
+what can i make with egg and tomato,ingredientSearch
+recipes using tofu and mushrooms,ingredientSearch
+i only have rice and tuna,ingredientSearch
+suggest a creamy soup dish,fullRecipe
+recommend a spicy meal,fullRecipe
+find me a sweet dessert recipe,fullRecipe
+i need a healthy food idea,fullRecipe
+i'm sad what should i eat,moodSearch
+i feel stressed recommend food,moodSearch
+comforting meal for anxious mood,moodSearch
+im bored what can i eat,moodSearch
+hello there,general
+thanks,general
+good morning,general
+can you help me,general
