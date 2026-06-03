@@ -76,6 +76,8 @@ export default function Sidebar({
         </div>
 
         <div className={styles.newSessionWrap}>
+          {/* Start a new session: parent `MiseChat` saves the current session to
+              history (persisted to `localStorage`) and resets the message list. */}
           <button onClick={onNewSession} className={styles.newSessionButton(isOpen)} title="New Chat">
             <Plus size={18} />
             {isOpen && <span className="text-sm">New Session</span>}
@@ -87,6 +89,8 @@ export default function Sidebar({
           {historyList.length === 0 && <div className={styles.emptyText}>No previous sessions</div>}
           {historyList.map(session => (
             <div key={session.id} className={styles.sessionItem}>
+              {/* Load a persisted session: `onLoadSession` replaces the current
+                  messages in `MiseChat` with the stored session messages. */}
               <button onClick={() => onLoadSession(session.id)} className={styles.sessionButton}>
                 {session.title}
               </button>
@@ -94,6 +98,8 @@ export default function Sidebar({
                 <button onClick={() => onLoadSession(session.id)} title="Open" className="text-[#8B8B8B] hover:text-[#000]">
                   <History size={16} />
                 </button>
+                {/* Delete a persisted session: this triggers a parent handler
+                    which updates `localStorage`. */}
                 <button onClick={() => onDeleteSession(session.id)} title="Delete" className="text-[#8B8B8B] hover:text-[#000]">✕</button>
               </div>
             </div>
@@ -106,6 +112,8 @@ export default function Sidebar({
             {(!savedRecipes || savedRecipes.length === 0) && <div className={styles.emptyText}>No saved recipes</div>}
             {savedRecipes && savedRecipes.map((recipe: Recipe) => (
               <div key={recipe.name} className={styles.savedItem}>
+                {/* Open a saved recipe: parent `MiseChat` appends a message with the
+                    `recipe` object so the UI can render it (and allow saving again). */}
                 <button onClick={() => onOpenSavedRecipe && onOpenSavedRecipe(recipe.name)} className={styles.sessionButton}>
                   {recipe.name}
                 </button>
@@ -113,6 +121,7 @@ export default function Sidebar({
                   <button onClick={() => onOpenSavedRecipe && onOpenSavedRecipe(recipe.name)} title="Open" className="text-[#8B8B8B] hover:text-[#000]">
                     <History size={16} />
                   </button>
+                  {/* Remove from saved recipes: parent updates `localStorage`. */}
                   <button onClick={() => onDeleteSavedRecipe && onDeleteSavedRecipe(recipe.name)} title="Delete" className="text-[#8B8B8B] hover:text-[#000]">✕</button>
                 </div>
               </div>
