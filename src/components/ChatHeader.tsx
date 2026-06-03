@@ -21,6 +21,7 @@ export default function ChatHeader({ isSidebarOpen, onToggleSidebar }: ChatHeade
   return (
     <header className={styles.header}>
       <div className={styles.leftGroup}>
+        {/* Toggle sidebar visibility (UI only) */}
         <button onClick={onToggleSidebar} className={styles.menuButton}>
           <Menu size={20} />
         </button>
@@ -32,6 +33,7 @@ export default function ChatHeader({ isSidebarOpen, onToggleSidebar }: ChatHeade
       </div>
 
       <div className={styles.rightGroup}>
+        {/* Logout / session actions live here — not directly tied to LLM calls */}
         <button className={styles.logoutButton}>
           <History size={14} />
           <span>{isSidebarOpen ? 'Logout' : 'Logout'}</span>
